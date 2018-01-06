@@ -1,7 +1,7 @@
 #pragma once
 
 #include <fstream>
-
+#include <mutex>
 
 namespace Gpio
 {
@@ -38,6 +38,9 @@ namespace Gpio
 
 		void SetDirection(Direction dir) 
 		{
+	
+			std::lock_guard<std::mutex> lock(mut);
+
 			direction = dir;
 			std::ofstream gpioDirection("/sys/class/gpio/gpio" + std::to_string(pinNumber) + "/direction");
 
@@ -51,6 +54,8 @@ namespace Gpio
 
 		void SetState(State s)
 		{
+			std::lock_guard<std::mutex> lock(mut);
+
 			state = s;
 			std::ofstream gpioPin("/sys/class/gpio/gpio" + std::to_string(pinNumber) + "/value");
 
@@ -67,6 +72,7 @@ namespace Gpio
 		unsigned int pinNumber;
 		Direction direction;
 		State state;
+		std::mutex mut;
 
 	};
 }
