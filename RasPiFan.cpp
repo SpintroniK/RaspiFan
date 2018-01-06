@@ -1,6 +1,7 @@
 
 #include "Gpio.h"
 #include "Config.h"
+#include "Temp.h"
 
 #include <chrono>
 #include <fstream>
@@ -9,34 +10,51 @@
 
 using namespace std::chrono;
 using namespace std::this_thread;
+using namespace Gpio;
 
 int main(int argc, char* argv[])
 {
 
 	Config config("RasPiFan.config");
+	
+	const unsigned int pinNumber = config.GetGpioPin();
+	const unsigned int dt = config.GetRefreshTime();
 
+	Pin pin(pinNumber, Direction::Out);
+	pin.SetState(State::Low);
 
-	const unsigned int pinNumber = 4;
-	Gpio::Pin pin(pinNumber, Gpio::Direction::Out);
-	pin.SetState(Gpio::State::Low);
+	Temp temp;
+
+	unsigned int threshTime = 0;
 
 	while(1)
 	{
-		std::ifstream file("/sys/class/thermal/thermal_zone0/temp");
 
+		double tmp = temp.Read();
 
-        double temp;
-        file >> temp;
-
-		temp /= 1000.;
-
-		if(temp > 60)
-			pin.SetState(Gpio::State::High);
+		if(tmp > config.GetTempThreshold() && IsLow(pin.GetState()))
+		{
+			threshTime += dt;
+		}
 		else
-			pin.SetState(Gpio::State::Low);
+		{
+			if(IsHigh(pin.GetState()) && tmp < config.GetTempThreshold())
+			{
+				//std::cout << "Set Low" << std::endl;
+				pin.SetState(Gpio::State::Low);
+			}
+		}
 
-		std::cout << "Temp : " << temp << std::endl;
-		sleep_for(milliseconds(2000));
+		if(threshTime > config.GetDelay() && IsLow(pin.GetState()))
+		{
+			//std::cout << "Set High" << std::endl;
+			pin.SetState(Gpio::State::High);
+			threshTime = 0;
+		}
+
+		//std::cout << "Temp : " << tmp << std::endl;
+
+		sleep_for(milliseconds(dt));
 	}
 
 	return 0;

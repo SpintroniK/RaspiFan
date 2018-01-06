@@ -18,6 +18,9 @@ namespace Gpio
 		High
 	};
 
+	static bool IsHigh(State s) { return s == State::High; }
+	static bool IsLow(State s) { return !IsHigh(s); }
+
 	class Pin
 	{
 
@@ -67,12 +70,14 @@ namespace Gpio
 			}
 		}
 
+		State GetState() const { std::lock_guard<std::mutex> lock(mut); return state; }
+
 	private:
 
 		unsigned int pinNumber;
 		Direction direction;
 		State state;
-		std::mutex mut;
+		mutable std::mutex mut;
 
 	};
 }

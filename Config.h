@@ -66,11 +66,15 @@ public:
 	{
 	}
 
-	
+	unsigned GetRefreshTime() const { return refreshTime; }
+	unsigned GetGpioPin() const { return gpioPin; }
+	unsigned GetTempThreshold() const { return tempThreshold; }
+	unsigned GetDelay() const { return delay; }
 
 private:
 
 	std::ifstream configFile;
+
 	unsigned refreshTime = 0;
 	unsigned gpioPin = 0;
 	unsigned tempThreshold = 0;
@@ -78,7 +82,10 @@ private:
 
 	const std::map<std::string, unsigned*> configMap
 	{
-		{"Refresh_time", &refreshTime}, {"GPIO_pin", &gpioPin}, {"Temp_threshold", &tempThreshold}, {"Delay", &delay}
+		{"Refresh_time", 	&refreshTime}, 
+		{"GPIO_pin", 		&gpioPin}, 
+		{"Temp_threshold", 	&tempThreshold}, 
+		{"Delay", 			&delay}
 	};
 
 };
